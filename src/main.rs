@@ -21,6 +21,10 @@ macro_rules! get_args {
     };
 }
 
+fn get_farthest(from: &String) -> (&String, u32) {
+    (from, 926)
+}
+
 fn main() {
     let columns = get_args!((1, 2), usize);
 
@@ -58,4 +62,9 @@ fn main() {
     let servers = servers;
 
     println!("{:?}", servers);
+
+    let (some_server, _) = servers.iter().next().expect("no servers found");
+    let (server_a, _) = get_farthest(some_server);
+    let (server_b, diameter) = get_farthest(server_a);
+    println!("{} hops between {} and {}", diameter, server_a, server_b);
 }
