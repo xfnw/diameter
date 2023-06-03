@@ -107,8 +107,6 @@ fn main() {
 
     let servers = parse_input(input, columns, BTreeMap::new());
 
-    println!("{:?}", servers);
-
     let (some_server, _) = servers.iter().next().expect("no servers found");
     let (server_a, _) = get_farthest(some_server, &servers);
     let (server_b, diameter) = get_farthest(server_a, &servers);
