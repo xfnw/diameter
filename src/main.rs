@@ -36,6 +36,15 @@ fn main() {
         let from = record[columns.0].to_string();
         let to = record[columns.1].to_string();
 
+        match servers.get_mut(&from) {
+            Some(connections) => {
+                connections.push(to.clone());
+            }
+            None => {
+                servers.insert(from.clone(), vec![to.clone()]);
+            }
+        }
+
         match servers.get_mut(&to) {
             Some(connections) => {
                 connections.push(from);
