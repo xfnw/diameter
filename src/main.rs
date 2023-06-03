@@ -102,6 +102,7 @@ fn main() {
     let input = csv::ReaderBuilder::new()
         .has_headers(false)
         .delimiter(b' ')
+        .flexible(true)
         .from_reader(io::stdin());
 
     let servers = parse_input(input, columns, BTreeMap::new());
