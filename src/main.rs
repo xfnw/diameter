@@ -21,8 +21,49 @@ macro_rules! get_args {
     };
 }
 
-fn get_farthest(from: &String) -> (&String, u32) {
-    (from, 926)
+// annoyingly, from needs a lifetime too since it is in
+// the default return value
+fn get_farthest<'a>(
+    from: &'a String,
+    servers: &'a BTreeMap<String, Vec<String>>,
+) -> (&'a String, usize) {
+    let mut longest: (&String, usize) = (from, 0);
+    let mut path: Vec<(&String, usize)> = vec![(from, 0)];
+    let mut visited: BTreeMap<&String, ()> = BTreeMap::new();
+
+    loop {
+        let (current, i) = match path.pop() {
+            Some(v) => v,
+            None => break,
+        };
+
+        // since we popped, no need to subtract 1 from length to
+        // get number of hops
+        let length = path.len();
+        if length > longest.1 {
+            longest = (current, length);
+        }
+
+        visited.insert(current, ());
+
+        let connections = servers.get(current).expect("nonexistent server referenced");
+
+        if i < connections.len() {
+            path.push((current, i + 1));
+
+            let next = &connections[i];
+            match visited.get(next) {
+                Some(_) => {
+                    continue;
+                }
+                None => {
+                    path.push((next, 0));
+                }
+            }
+        }
+    }
+
+    longest
 }
 
 fn main() {
@@ -64,7 +105,8 @@ fn main() {
     println!("{:?}", servers);
 
     let (some_server, _) = servers.iter().next().expect("no servers found");
-    let (server_a, _) = get_farthest(some_server);
-    let (server_b, diameter) = get_farthest(server_a);
+    let (server_a, _) = get_farthest(some_server, &servers);
+    let (server_b, diameter) = get_farthest(server_a, &servers);
+
     println!("{} hops between {} and {}", diameter, server_a, server_b);
 }
