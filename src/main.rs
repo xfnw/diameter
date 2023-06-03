@@ -1,20 +1,28 @@
-use csv;
 use std::collections::BTreeMap;
 use std::env::args;
 use std::io;
 
-macro_rules! get_arg {
-    ($i:expr, $as:ty) => {
-        args()
-            .nth($i)
-            .expect("missing column $i")
-            .parse::<$as>()
-            .expect("invalid column number")
+macro_rules! get_args {
+    (($($i:expr),*), $as:ty) => {
+        ($({
+            args()
+                .nth($i)
+                .expect(concat!(
+                    "missing column ",
+                    stringify!($i)
+                ))
+                .parse::<$as>()
+                .expect(concat!(
+                    "column ",
+                    stringify!($i),
+                    " is not valid"
+                ))
+        },)*)
     };
 }
 
 fn main() {
-    let columns = (get_arg!(1, usize), get_arg!(2, usize));
+    let columns = get_args!((1, 2), usize);
 
     let mut input = csv::ReaderBuilder::new()
         .has_headers(false)
@@ -29,8 +37,12 @@ fn main() {
         let to = record[columns.1].to_string();
 
         match servers.get_mut(&to) {
-            Some(connections) => {connections.push(from);}
-            None => {servers.insert(to, vec![from]);}
+            Some(connections) => {
+                connections.push(from);
+            }
+            None => {
+                servers.insert(to, vec![from]);
+            }
         }
     }
 
