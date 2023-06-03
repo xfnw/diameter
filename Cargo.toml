@@ -1,0 +1,8 @@
+[package]
+name = "diameter"
+description = "get the diameter (max path length) of irc links output"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+csv = "1.2.2"
