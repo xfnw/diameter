@@ -31,12 +31,7 @@ fn get_farthest<'a>(
     let mut path: Vec<(&String, usize)> = vec![(from, 0)];
     let mut visited: BTreeMap<&String, ()> = BTreeMap::new();
 
-    loop {
-        let (current, i) = match path.pop() {
-            Some(v) => v,
-            None => break,
-        };
-
+    while let Some((current, i)) = path.pop() {
         // since we popped, no need to subtract 1 from length to
         // get number of hops
         let length = path.len();
