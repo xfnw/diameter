@@ -61,17 +61,15 @@ fn get_farthest<'a>(
     longest
 }
 
-fn main() {
-    let columns = get_args!((1, 2), usize);
-
-    let mut input = csv::ReaderBuilder::new()
-        .has_headers(false)
-        .delimiter(b' ')
-        .from_reader(io::stdin());
-
-    let mut servers: BTreeMap<String, Vec<String>> = BTreeMap::new();
-
-    for result in input.records() {
+fn parse_input<R>(
+    mut reader: csv::Reader<R>,
+    columns: (usize, usize),
+    mut servers: BTreeMap<String, Vec<String>>,
+) -> BTreeMap<String, Vec<String>>
+where
+    R: std::io::Read,
+{
+    for result in reader.records() {
         let record = result.unwrap();
         let from = record[columns.0].to_string();
         let to = record[columns.1].to_string();
@@ -95,7 +93,18 @@ fn main() {
         }
     }
 
-    let servers = servers;
+    servers
+}
+
+fn main() {
+    let columns = get_args!((1, 2), usize);
+
+    let input = csv::ReaderBuilder::new()
+        .has_headers(false)
+        .delimiter(b' ')
+        .from_reader(io::stdin());
+
+    let servers = parse_input(input, columns, BTreeMap::new());
 
     println!("{:?}", servers);
 
