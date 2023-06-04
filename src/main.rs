@@ -61,14 +61,11 @@ fn get_farthest<'a>(
     longest
 }
 
-fn parse_input<R>(
-    mut reader: csv::Reader<R>,
+fn parse_input(
+    mut reader: csv::Reader<impl io::Read>,
     columns: (usize, usize),
     mut servers: BTreeMap<String, Vec<String>>,
-) -> BTreeMap<String, Vec<String>>
-where
-    R: std::io::Read,
-{
+) -> BTreeMap<String, Vec<String>> {
     for result in reader.records() {
         let record = result.unwrap();
         let from = record[columns.0].to_string();
