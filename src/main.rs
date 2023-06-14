@@ -59,8 +59,8 @@ fn get_farthest<'a>(
 fn parse_input(
     mut reader: csv::Reader<impl io::Read>,
     columns: (usize, usize),
-    mut servers: BTreeMap<String, Vec<String>>,
 ) -> BTreeMap<String, Vec<String>> {
+    let mut servers: BTreeMap<String, Vec<String>> = BTreeMap::new();
     for result in reader.records() {
         let record = result.unwrap();
         let from = record[columns.0].to_string();
@@ -97,7 +97,7 @@ fn main() {
         .flexible(true)
         .from_reader(io::stdin());
 
-    let servers = parse_input(input, columns, BTreeMap::new());
+    let servers = parse_input(input, columns);
 
     let (some_server, _) = servers.iter().next().expect("no servers found");
     let (server_a, _) = get_farthest(some_server, &servers);
