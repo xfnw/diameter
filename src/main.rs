@@ -47,13 +47,8 @@ fn get_farthest<'a>(
             path.push((current, i + 1));
 
             let next = &connections[i];
-            match visited.get(next) {
-                Some(_) => {
-                    continue;
-                }
-                None => {
+            if !visited.contains_key(next) {
                     path.push((next, 0));
-                }
             }
         }
     }
