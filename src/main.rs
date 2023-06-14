@@ -21,7 +21,7 @@ macro_rules! get_args {
     };
 }
 
-fn get_farthest<'a>(from: usize, servers: &'a BTreeMap<usize, Vec<usize>>) -> (usize, usize) {
+fn get_farthest(from: usize, servers: &BTreeMap<usize, Vec<usize>>) -> (usize, usize) {
     let mut longest: (&usize, usize) = (&from, 0);
     let mut path: Vec<(&usize, usize)> = vec![(&from, 0)];
     let mut visited: BTreeMap<&usize, ()> = BTreeMap::new();
@@ -58,6 +58,7 @@ fn parse_input(
     let mut servers: BTreeMap<usize, Vec<usize>> = BTreeMap::new();
     let mut namelookup: BTreeMap<String, usize> = BTreeMap::new();
     let mut servernames: Vec<String> = vec![];
+
     for result in reader.records() {
         let record = result.unwrap();
         let from = record[columns.0].to_string();
@@ -68,7 +69,7 @@ fn parse_input(
             None => {
                 let newid = servernames.len();
                 servernames.push(from.clone());
-                namelookup.insert(from, *&newid);
+                namelookup.insert(from, newid);
                 newid
             }
         };
@@ -77,20 +78,19 @@ fn parse_input(
             None => {
                 let newid = servernames.len();
                 servernames.push(to.clone());
-                namelookup.insert(to, *&newid);
+                namelookup.insert(to, newid);
                 newid
             }
         };
 
         match servers.get_mut(&from) {
             Some(connections) => {
-                connections.push(*&to);
+                connections.push(to);
             }
             None => {
-                servers.insert(*&from, vec![*&to]);
+                servers.insert(from, vec![to]);
             }
         }
-
         match servers.get_mut(&to) {
             Some(connections) => {
                 connections.push(from);
