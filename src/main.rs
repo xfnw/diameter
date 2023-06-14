@@ -21,15 +21,10 @@ macro_rules! get_args {
     };
 }
 
-// annoyingly, from needs a lifetime too since it is in
-// the default return value
-fn get_farthest<'a>(
-    from: &'a String,
-    servers: &'a BTreeMap<String, Vec<String>>,
-) -> (&'a String, usize) {
-    let mut longest: (&String, usize) = (from, 0);
-    let mut path: Vec<(&String, usize)> = vec![(from, 0)];
-    let mut visited: BTreeMap<&String, ()> = BTreeMap::new();
+fn get_farthest<'a>(from: usize, servers: &'a BTreeMap<usize, Vec<usize>>) -> (usize, usize) {
+    let mut longest: (&usize, usize) = (&from, 0);
+    let mut path: Vec<(&usize, usize)> = vec![(&from, 0)];
+    let mut visited: BTreeMap<&usize, ()> = BTreeMap::new();
 
     while let Some((current, i)) = path.pop() {
         // since we popped, no need to subtract 1 from length to
@@ -48,30 +43,51 @@ fn get_farthest<'a>(
 
             let next = &connections[i];
             if !visited.contains_key(next) {
-                    path.push((next, 0));
+                path.push((next, 0));
             }
         }
     }
 
-    longest
+    (*longest.0, longest.1)
 }
 
 fn parse_input(
     mut reader: csv::Reader<impl io::Read>,
     columns: (usize, usize),
-) -> BTreeMap<String, Vec<String>> {
-    let mut servers: BTreeMap<String, Vec<String>> = BTreeMap::new();
+) -> (BTreeMap<usize, Vec<usize>>, Vec<String>) {
+    let mut servers: BTreeMap<usize, Vec<usize>> = BTreeMap::new();
+    let mut namelookup: BTreeMap<String, usize> = BTreeMap::new();
+    let mut servernames: Vec<String> = vec![];
     for result in reader.records() {
         let record = result.unwrap();
         let from = record[columns.0].to_string();
         let to = record[columns.1].to_string();
 
+        let from = match namelookup.get(&from) {
+            Some(id) => *id,
+            None => {
+                let newid = servernames.len();
+                servernames.push(from.clone());
+                namelookup.insert(from, *&newid);
+                newid
+            }
+        };
+        let to = match namelookup.get(&to) {
+            Some(id) => *id,
+            None => {
+                let newid = servernames.len();
+                servernames.push(to.clone());
+                namelookup.insert(to, *&newid);
+                newid
+            }
+        };
+
         match servers.get_mut(&from) {
             Some(connections) => {
-                connections.push(to.clone());
+                connections.push(*&to);
             }
             None => {
-                servers.insert(from.clone(), vec![to.clone()]);
+                servers.insert(*&from, vec![*&to]);
             }
         }
 
@@ -85,7 +101,7 @@ fn parse_input(
         }
     }
 
-    servers
+    (servers, servernames)
 }
 
 fn main() {
@@ -97,11 +113,14 @@ fn main() {
         .flexible(true)
         .from_reader(io::stdin());
 
-    let servers = parse_input(input, columns);
+    let (servers, servernames) = parse_input(input, columns);
 
-    let (some_server, _) = servers.iter().next().expect("no servers found");
+    let (&some_server, _) = servers.iter().next().expect("no servers found");
     let (server_a, _) = get_farthest(some_server, &servers);
     let (server_b, diameter) = get_farthest(server_a, &servers);
 
-    println!("{} hops between {} and {}", diameter, server_a, server_b);
+    println!(
+        "{} hops between {} and {}",
+        diameter, servernames[server_a], servernames[server_b]
+    );
 }
