@@ -2,5 +2,6 @@ target
 target/*
 d
 d/*
+tags
 *.profraw
 
