@@ -51,6 +51,22 @@ fn get_farthest(from: usize, servers: &BTreeMap<usize, Vec<usize>>) -> (usize, u
     (*longest.0, longest.1)
 }
 
+macro_rules! make_ids {
+    (($($name:expr),*), $lookup:expr, $nameslist:expr) => {
+        ($({
+            match $lookup.get(&$name) {
+                Some(id) => *id,
+                None => {
+                    let newid = $nameslist.len();
+                    $nameslist.push($name.clone());
+                    $lookup.insert($name, newid);
+                    newid
+                }
+            }
+        },)*)
+    };
+}
+
 fn parse_input(
     mut reader: csv::Reader<impl io::Read>,
     columns: (usize, usize),
@@ -64,24 +80,7 @@ fn parse_input(
         let from = record[columns.0].to_string();
         let to = record[columns.1].to_string();
 
-        let from = match namelookup.get(&from) {
-            Some(id) => *id,
-            None => {
-                let newid = servernames.len();
-                servernames.push(from.clone());
-                namelookup.insert(from, newid);
-                newid
-            }
-        };
-        let to = match namelookup.get(&to) {
-            Some(id) => *id,
-            None => {
-                let newid = servernames.len();
-                servernames.push(to.clone());
-                namelookup.insert(to, newid);
-                newid
-            }
-        };
+        let (from, to) = make_ids!((from, to), namelookup, servernames);
 
         match servers.get_mut(&from) {
             Some(connections) => {
