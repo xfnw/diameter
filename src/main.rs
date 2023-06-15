@@ -123,3 +123,29 @@ fn main() {
         diameter, servernames[server_a], servernames[server_b]
     );
 }
+
+#[test]
+fn check_farthest() {
+    let mut servers: BTreeMap<usize, Vec<usize>> = BTreeMap::new();
+    servers.insert(0, vec![1, 3]);
+    servers.insert(1, vec![0, 2]);
+    servers.insert(2, vec![1]);
+    servers.insert(3, vec![0, 4]);
+    servers.insert(4, vec![3, 5]);
+    servers.insert(5, vec![4]);
+    let servers = servers;
+
+    assert_eq!(get_farthest(0, &servers), (5, 3));
+}
+
+#[test]
+#[should_panic(expected = "nonexistent server referenced")]
+fn check_nonexist_server() {
+    let mut servers: BTreeMap<usize, Vec<usize>> = BTreeMap::new();
+    servers.insert(0, vec![1, 2, 3]);
+    servers.insert(1, vec![0]);
+    servers.insert(2, vec![0]);
+    let servers = servers;
+
+    get_farthest(0, &servers);
+}
