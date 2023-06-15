@@ -32,7 +32,6 @@ results in: `4 hops between sparrow. and feesh.`
   sorted, this will result in inconsistant and incorrect
   results depending on the input order.
 - unreachable nodes will be ignored when searching. it
-  currently starts from the first BTreeMap item (which are
-  represented alphabetically), though this should not be
-  depended upon.
+  currently starts from the first inputted node, though this
+  should not be depended upon.
 
