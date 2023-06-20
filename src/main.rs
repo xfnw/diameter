@@ -52,13 +52,12 @@ fn get_farthest(from: usize, servers: &BTreeMap<usize, Vec<usize>>) -> (usize, u
 }
 
 macro_rules! make_ids {
-    (($($name:expr),*), $lookup:expr, $nameslist:expr) => {
+    (($($name:expr),*), $lookup:expr) => {
         ($({
             match $lookup.get(&$name) {
                 Some(id) => *id,
                 None => {
-                    let newid = $nameslist.len();
-                    $nameslist.push($name.clone());
+                    let newid = $lookup.len();
                     $lookup.insert($name, newid);
                     newid
                 }
@@ -73,14 +72,13 @@ fn parse_input(
 ) -> (BTreeMap<usize, Vec<usize>>, Vec<String>) {
     let mut servers: BTreeMap<usize, Vec<usize>> = BTreeMap::new();
     let mut namelookup: BTreeMap<String, usize> = BTreeMap::new();
-    let mut servernames: Vec<String> = vec![];
 
     for result in reader.records() {
         let record = result.unwrap();
         let from = record[columns.0].to_string();
         let to = record[columns.1].to_string();
 
-        let (from, to) = make_ids!((from, to), namelookup, servernames);
+        let (from, to) = make_ids!((from, to), namelookup);
 
         match servers.get_mut(&from) {
             Some(connections) => {
@@ -98,6 +96,11 @@ fn parse_input(
                 servers.insert(to, vec![from]);
             }
         }
+    }
+
+    let mut servernames: Vec<String> = vec!["".to_string(); namelookup.len()];
+    for (name, id) in namelookup.into_iter() {
+        servernames[id] = name;
     }
 
     (servers, servernames)
