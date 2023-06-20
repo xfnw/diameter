@@ -116,6 +116,9 @@ fn main() {
         .from_reader(io::stdin());
 
     let (servers, servernames) = parse_input(input, columns);
+    if servernames.is_empty() {
+        return;
+    }
 
     let (server_a, _) = get_farthest(0, &servers);
     let (server_b, diameter) = get_farthest(server_a, &servers);
