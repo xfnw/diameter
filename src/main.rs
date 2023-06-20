@@ -36,7 +36,9 @@ fn get_farthest(from: usize, servers: &Vec<Vec<usize>>) -> (usize, usize) {
 
         visited.insert(current, ());
 
-        let connections = servers.get(*current).expect("nonexistent server referenced");
+        let connections = servers
+            .get(*current)
+            .expect("nonexistent server referenced");
 
         if i < connections.len() {
             path.push((current, i + 1));
@@ -98,7 +100,7 @@ fn parse_input(
         }
     }
 
-    let servers: Vec<Vec<usize>> = servers.into_iter().map(|(_, b)| b).collect();
+    let servers: Vec<Vec<usize>> = servers.into_values().collect();
 
     let mut servernames: Vec<String> = vec!["".to_string(); namelookup.len()];
     for (name, id) in namelookup.into_iter() {
@@ -133,14 +135,14 @@ fn main() {
 
 #[test]
 fn check_farthest() {
-    let mut servers: Vec<Vec<usize>> = Vec::with_capacity(6);
-    servers.push(vec![1, 3]);
-    servers.push(vec![0, 2]);
-    servers.push(vec![1]);
-    servers.push(vec![0, 4]);
-    servers.push(vec![3, 5]);
-    servers.push(vec![4]);
-    let servers = servers;
+    let servers: Vec<Vec<usize>> = vec![
+        vec![1, 3],
+        vec![0, 2],
+        vec![1],
+        vec![0, 4],
+        vec![3, 5],
+        vec![4],
+    ];
 
     assert_eq!(get_farthest(0, &servers), (5, 3));
 }
@@ -148,11 +150,7 @@ fn check_farthest() {
 #[test]
 #[should_panic(expected = "nonexistent server referenced")]
 fn check_nonexist_server() {
-    let mut servers: Vec<Vec<usize>> = Vec::with_capacity(6);
-    servers.push(vec![1, 2, 3]);
-    servers.push(vec![0]);
-    servers.push(vec![0]);
-    let servers = servers;
+    let servers: Vec<Vec<usize>> = vec![vec![1, 2, 3], vec![0], vec![0]];
 
     get_farthest(0, &servers);
 }
