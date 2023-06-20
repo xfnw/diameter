@@ -21,7 +21,7 @@ macro_rules! get_args {
     };
 }
 
-fn get_farthest(from: usize, servers: &Vec<Vec<usize>>) -> (usize, usize) {
+fn get_farthest(from: usize, servers: &[Vec<usize>]) -> (usize, usize) {
     let mut longest: (&usize, usize) = (&from, 0);
     let mut path: Vec<(&usize, usize)> = vec![(&from, 0)];
     let mut visited: BTreeMap<&usize, ()> = BTreeMap::new();
