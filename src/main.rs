@@ -21,7 +21,7 @@ macro_rules! get_args {
     };
 }
 
-fn get_farthest(from: usize, servers: &BTreeMap<usize, Vec<usize>>) -> (usize, usize) {
+fn get_farthest(from: usize, servers: &Vec<Vec<usize>>) -> (usize, usize) {
     let mut longest: (&usize, usize) = (&from, 0);
     let mut path: Vec<(&usize, usize)> = vec![(&from, 0)];
     let mut visited: BTreeMap<&usize, ()> = BTreeMap::new();
@@ -36,7 +36,7 @@ fn get_farthest(from: usize, servers: &BTreeMap<usize, Vec<usize>>) -> (usize, u
 
         visited.insert(current, ());
 
-        let connections = servers.get(current).expect("nonexistent server referenced");
+        let connections = servers.get(*current).expect("nonexistent server referenced");
 
         if i < connections.len() {
             path.push((current, i + 1));
@@ -69,7 +69,7 @@ macro_rules! make_ids {
 fn parse_input(
     mut reader: csv::Reader<impl io::Read>,
     columns: (usize, usize),
-) -> (BTreeMap<usize, Vec<usize>>, Vec<String>) {
+) -> (Vec<Vec<usize>>, Vec<String>) {
     let mut servers: BTreeMap<usize, Vec<usize>> = BTreeMap::new();
     let mut namelookup: BTreeMap<String, usize> = BTreeMap::new();
 
@@ -97,6 +97,8 @@ fn parse_input(
             }
         }
     }
+
+    let servers: Vec<Vec<usize>> = servers.into_iter().map(|(_, b)| b).collect();
 
     let mut servernames: Vec<String> = vec!["".to_string(); namelookup.len()];
     for (name, id) in namelookup.into_iter() {
@@ -131,13 +133,13 @@ fn main() {
 
 #[test]
 fn check_farthest() {
-    let mut servers: BTreeMap<usize, Vec<usize>> = BTreeMap::new();
-    servers.insert(0, vec![1, 3]);
-    servers.insert(1, vec![0, 2]);
-    servers.insert(2, vec![1]);
-    servers.insert(3, vec![0, 4]);
-    servers.insert(4, vec![3, 5]);
-    servers.insert(5, vec![4]);
+    let mut servers: Vec<Vec<usize>> = Vec::with_capacity(6);
+    servers.push(vec![1, 3]);
+    servers.push(vec![0, 2]);
+    servers.push(vec![1]);
+    servers.push(vec![0, 4]);
+    servers.push(vec![3, 5]);
+    servers.push(vec![4]);
     let servers = servers;
 
     assert_eq!(get_farthest(0, &servers), (5, 3));
@@ -146,10 +148,10 @@ fn check_farthest() {
 #[test]
 #[should_panic(expected = "nonexistent server referenced")]
 fn check_nonexist_server() {
-    let mut servers: BTreeMap<usize, Vec<usize>> = BTreeMap::new();
-    servers.insert(0, vec![1, 2, 3]);
-    servers.insert(1, vec![0]);
-    servers.insert(2, vec![0]);
+    let mut servers: Vec<Vec<usize>> = Vec::with_capacity(6);
+    servers.push(vec![1, 2, 3]);
+    servers.push(vec![0]);
+    servers.push(vec![0]);
     let servers = servers;
 
     get_farthest(0, &servers);
