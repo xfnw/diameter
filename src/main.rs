@@ -1,4 +1,4 @@
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 use std::env::args;
 use std::io;
 
@@ -24,7 +24,7 @@ macro_rules! get_args {
 fn get_farthest(from: usize, servers: &[Vec<usize>]) -> (usize, usize) {
     let mut longest: (&usize, usize) = (&from, 0);
     let mut path: Vec<(&usize, usize)> = vec![(&from, 0)];
-    let mut visited: BTreeMap<&usize, ()> = BTreeMap::new();
+    let mut visited: BTreeSet<&usize> = BTreeSet::new();
 
     while let Some((current, i)) = path.pop() {
         // since we popped, no need to subtract 1 from length to
@@ -34,7 +34,7 @@ fn get_farthest(from: usize, servers: &[Vec<usize>]) -> (usize, usize) {
             longest = (current, length);
         }
 
-        visited.insert(current, ());
+        visited.insert(current);
 
         let connections = servers
             .get(*current)
@@ -44,7 +44,7 @@ fn get_farthest(from: usize, servers: &[Vec<usize>]) -> (usize, usize) {
             path.push((current, i + 1));
 
             let next = &connections[i];
-            if !visited.contains_key(next) {
+            if !visited.contains(next) {
                 path.push((next, 0));
             }
         }
