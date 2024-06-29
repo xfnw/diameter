@@ -11,7 +11,7 @@ other utilities such as `awk` and `cut`.
 
 ## example
 ```sh
-diameter 3 4 <<EOF
+cargo run -Fbin 3 4 <<EOF
 :fox. 364 xfnwtest sparrow. maned.wolf :2 bird
 :fox. 364 xfnwtest feesh. otter. :2 wiggle wiggle
 :fox. 364 xfnwtest services. fox. :1 Atheme IRC Services
@@ -20,7 +20,7 @@ diameter 3 4 <<EOF
 :fox. 364 xfnwtest fox. fox. :0 solanum fox server
 EOF
 ```
-results in: `4 hops between sparrow. and feesh.`
+results in: `4 hops between feesh. and sparrow.`
 
 ## bugs
 - this was designed to handle a spanning-tree (trees with no
