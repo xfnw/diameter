@@ -1,8 +1,7 @@
-use std::collections::BTreeMap;
 use std::env::args;
 use std::io;
 
-use diameter::{add_link, collect_servers, get_farthest};
+use diameter::SpanningTree;
 
 macro_rules! get_args {
     (($($i:expr),*), $as:ty) => {
@@ -23,22 +22,18 @@ macro_rules! get_args {
     };
 }
 
-fn parse_input(
-    mut reader: csv::Reader<impl io::Read>,
-    columns: (usize, usize),
-) -> (Vec<Vec<usize>>, Vec<String>) {
-    let mut servers: BTreeMap<usize, Vec<usize>> = BTreeMap::new();
-    let mut namelookup: BTreeMap<String, usize> = BTreeMap::new();
+fn parse_input(mut reader: csv::Reader<impl io::Read>, columns: (usize, usize)) -> SpanningTree {
+    let mut graph = SpanningTree::default();
 
     for result in reader.records() {
         let record = result.unwrap();
-        let from = record[columns.0].to_string();
-        let to = record[columns.1].to_string();
+        let from = &record[columns.0];
+        let to = &record[columns.1];
 
-        add_link(from, to, &mut namelookup, &mut servers);
+        graph.add_link(from, to);
     }
 
-    collect_servers(servers, namelookup)
+    graph
 }
 
 fn main() {
@@ -50,16 +45,9 @@ fn main() {
         .flexible(true)
         .from_reader(io::stdin());
 
-    let (servers, servernames) = parse_input(input, columns);
-    if servernames.is_empty() {
-        return;
-    }
+    let graph = parse_input(input, columns);
 
-    let (server_a, _) = get_farthest(0, &servers);
-    let (server_b, diameter) = get_farthest(server_a, &servers);
+    let (diameter, server_a, server_b) = graph.diameter().expect("no input?");
 
-    println!(
-        "{} hops between {} and {}",
-        diameter, servernames[server_a], servernames[server_b]
-    );
+    println!("{} hops between {} and {}", diameter, server_a, server_b);
 }

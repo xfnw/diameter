@@ -1,6 +1,20 @@
 use std::collections::{BTreeMap, BTreeSet};
 
-pub fn get_farthest(from: usize, servers: &[Vec<usize>]) -> (usize, usize) {
+/// get the farthest node by walking from a node
+///
+/// will panic on invalid input, it is recommended to only use
+/// a tree from SpanningTree::collect_servers
+///
+/// ```rust
+/// let mut graph = diameter::SpanningTree::default();
+/// graph.add_link("yip", "yap");
+/// let (nodes, names) = graph.collect_nodes();
+/// let (farthest, distance) = diameter::get_farthest(0, nodes);
+///
+/// assert_eq!(names[farthest], "yap");
+/// assert_eq!(distance, 1);
+/// ```
+pub fn get_farthest(from: usize, tree: &[Vec<usize>]) -> (usize, usize) {
     let mut longest: (&usize, usize) = (&from, 0);
     let mut path: Vec<(&usize, usize)> = vec![(&from, 0)];
     let mut visited: BTreeSet<&usize> = BTreeSet::new();
@@ -15,9 +29,7 @@ pub fn get_farthest(from: usize, servers: &[Vec<usize>]) -> (usize, usize) {
 
         visited.insert(current);
 
-        let connections = servers
-            .get(*current)
-            .expect("nonexistent server referenced");
+        let connections = tree.get(*current).expect("nonexistent server referenced");
 
         if i < connections.len() {
             path.push((current, i + 1));
@@ -35,25 +47,38 @@ pub fn get_farthest(from: usize, servers: &[Vec<usize>]) -> (usize, usize) {
 macro_rules! make_ids {
     (($($name:expr),*), $lookup:expr) => {
         ($({
-            match $lookup.get(&$name) {
-                Some(id) => *id,
-                None => {
-                    let newid = $lookup.len();
-                    $lookup.insert($name, newid);
-                    newid
-                }
-            }
+            make_ids!($name, $lookup, {})
         },)*)
+    };
+    (($($name:expr),*), $lookup:expr, $nodenames:expr, $nodes:expr) => {
+        ($({
+            make_ids!($name, $lookup, {
+                $nodenames.push($name.to_string());
+                $nodes.push(vec![]);
+            })
+        },)*)
+    };
+    ($name:expr, $lookup:expr, $extra:expr) => {
+        match $lookup.get($name) {
+            Some(id) => *id,
+            None => {
+                let newid = $lookup.len();
+                $extra
+                $lookup.insert($name.to_string(), newid);
+                newid
+            }
+        }
     };
 }
 
+#[deprecated(since = "0.3.0", note = "consider using SpanningTree instead")]
 pub fn add_link(
     from: String,
     to: String,
     namelookup: &mut BTreeMap<String, usize>,
     servers: &mut BTreeMap<usize, Vec<usize>>,
 ) {
-    let (from, to) = make_ids!((from, to), *namelookup);
+    let (from, to) = make_ids!((&from, &to), *namelookup);
 
     match servers.get_mut(&from) {
         Some(connections) => {
@@ -73,6 +98,7 @@ pub fn add_link(
     }
 }
 
+#[deprecated(since = "0.3.0", note = "consider using SpanningTree instead")]
 pub fn collect_servers(
     servers: BTreeMap<usize, Vec<usize>>,
     namelookup: BTreeMap<String, usize>,
@@ -85,6 +111,67 @@ pub fn collect_servers(
     }
 
     (servers, servernames)
+}
+
+/// a representation of a spanning tree, an undirected graph without loops
+#[derive(Default, Debug, Clone)]
+pub struct SpanningTree {
+    nodenames: Vec<String>,
+    namelookup: BTreeMap<String, usize>,
+    nodes: Vec<Vec<usize>>,
+}
+
+impl SpanningTree {
+    /// add an edge to the tree. any missing nodes will be automatically created.
+    ///
+    /// ```rust
+    /// let mut graph = diameter::SpanningTree::default();
+    /// graph.add_link("some.server", "other.server");
+    ///
+    /// println!("{:?}", graph);
+    /// ```
+    pub fn add_link(&mut self, from: &str, to: &str) {
+        let (from, to) = make_ids!((from, to), self.namelookup, self.nodenames, self.nodes);
+
+        if from == to {
+            return;
+        }
+
+        self.nodes[from].push(to);
+        self.nodes[to].push(from);
+    }
+
+    /// retrieve internal representation of the tree to feed into get_farthest, and list of names
+    pub fn collect_nodes(&self) -> (&Vec<Vec<usize>>, &Vec<String>) {
+        (&self.nodes, &self.nodenames)
+    }
+
+    /// calculate the diameter and two of the farthest nodes
+    ///
+    /// ```rust
+    /// let mut graph = diameter::SpanningTree::default();
+    ///
+    /// assert_eq!(graph.diameter(), None);
+    ///
+    /// graph.add_link("yip", "yap");
+    /// graph.add_link("yap", "yop");
+    /// graph.add_link("yop", "yote");
+    /// let (length, a, b) = graph.diameter().unwrap();
+    ///
+    /// assert_eq!(length, 3);
+    /// assert_eq!(a, "yote");
+    /// assert_eq!(b, "yip");
+    /// ```
+    pub fn diameter(&self) -> Option<(usize, &str, &str)> {
+        if self.nodes.is_empty() {
+            return None;
+        }
+
+        let (node_a, _) = get_farthest(0, &self.nodes);
+        let (node_b, length) = get_farthest(node_a, &self.nodes);
+
+        Some((length, &self.nodenames[node_a], &self.nodenames[node_b]))
+    }
 }
 
 #[cfg(test)]
