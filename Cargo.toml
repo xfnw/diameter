@@ -3,7 +3,7 @@ name = "diameter"
 description = "get the diameter (max path length) of irc links output"
 repository = "https://github.com/xfnw/diameter/"
 license = "MIT"
-version = "0.2.1"
+version = "0.2.2"
 edition = "2021"
 
 [dependencies]
