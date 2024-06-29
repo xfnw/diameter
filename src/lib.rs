@@ -2,8 +2,8 @@ use std::collections::{BTreeMap, BTreeSet};
 
 /// get the farthest node by walking from a node
 ///
-/// will panic on invalid input, it is recommended to only use
-/// a tree from SpanningTree::collect_servers
+/// will panic on invalid input, it is recommended to use a tree from
+/// [`SpanningTree::collect_nodes`] after verifying it is not empty
 ///
 /// ```rust
 /// let mut graph = diameter::SpanningTree::default();
@@ -141,7 +141,10 @@ impl SpanningTree {
         self.nodes[to].push(from);
     }
 
-    /// retrieve internal representation of the tree to feed into get_farthest, and list of names
+    /// retrieve internal representation of the tree, and list of names
+    ///
+    /// useful for feeding into [`get_farthest`], although in most cases it is easier to use
+    /// [`SpanningTree::diameter`]
     pub fn collect_nodes(&self) -> (&Vec<Vec<usize>>, &Vec<String>) {
         (&self.nodes, &self.nodenames)
     }
