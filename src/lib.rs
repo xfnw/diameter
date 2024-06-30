@@ -8,13 +8,13 @@ use std::collections::{BTreeMap, BTreeSet};
 /// ```rust
 /// let mut graph = diameter::SpanningTree::default();
 /// graph.add_link("yip", "yap");
-/// let (tree, names) = graph.nodes();
-/// let (farthest, distance) = diameter::get_farthest(0, tree);
+/// let (edges, names) = graph.tree();
+/// let (farthest, distance) = diameter::get_farthest(0, edges);
 ///
 /// assert_eq!(names[farthest], "yap");
 /// assert_eq!(distance, 1);
 /// ```
-pub fn get_farthest(from: usize, tree: &[Vec<usize>]) -> (usize, usize) {
+pub fn get_farthest(from: usize, edges: &[Vec<usize>]) -> (usize, usize) {
     let mut longest: (&usize, usize) = (&from, 0);
     let mut path: Vec<(&usize, usize)> = vec![(&from, 0)];
     let mut visited: BTreeSet<&usize> = BTreeSet::new();
@@ -29,7 +29,7 @@ pub fn get_farthest(from: usize, tree: &[Vec<usize>]) -> (usize, usize) {
 
         visited.insert(current);
 
-        let connections = tree.get(*current).expect("nonexistent server referenced");
+        let connections = edges.get(*current).expect("nonexistent server referenced");
 
         if i < connections.len() {
             path.push((current, i + 1));
@@ -116,9 +116,9 @@ pub fn collect_servers(
 /// a representation of a spanning tree, an undirected graph without loops
 #[derive(Default, Debug, Clone)]
 pub struct SpanningTree {
-    nodenames: Vec<String>,
-    namelookup: BTreeMap<String, usize>,
-    nodes: Vec<Vec<usize>>,
+    nodes: Vec<String>,
+    lookup: BTreeMap<String, usize>,
+    edges: Vec<Vec<usize>>,
 }
 
 impl SpanningTree {
@@ -131,14 +131,14 @@ impl SpanningTree {
     /// println!("{:?}", graph);
     /// ```
     pub fn add_link(&mut self, from: &str, to: &str) {
-        let (from, to) = make_ids!((from, to), self.namelookup, self.nodenames, self.nodes);
+        let (from, to) = make_ids!((from, to), self.lookup, self.nodes, self.edges);
 
         if from == to {
             return;
         }
 
-        self.nodes[from].push(to);
-        self.nodes[to].push(from);
+        self.edges[from].push(to);
+        self.edges[to].push(from);
     }
 
     /// calculate the diameter and two of the farthest nodes
@@ -158,27 +158,27 @@ impl SpanningTree {
     /// assert_eq!(b, "yip");
     /// ```
     pub fn diameter(&self) -> Option<(usize, &str, &str)> {
-        if self.nodes.is_empty() {
+        if self.edges.is_empty() {
             return None;
         }
 
-        let (node_a, _) = get_farthest(0, &self.nodes);
-        let (node_b, length) = get_farthest(node_a, &self.nodes);
+        let (node_a, _) = get_farthest(0, &self.edges);
+        let (node_b, length) = get_farthest(node_a, &self.edges);
 
-        Some((length, &self.nodenames[node_a], &self.nodenames[node_b]))
+        Some((length, &self.nodes[node_a], &self.nodes[node_b]))
     }
 
     /// retrieve internal representation of the tree, and list of names
     ///
     /// useful for feeding into [`get_farthest`], although in most cases it is easier to use
     /// [`SpanningTree::diameter`]
-    pub fn nodes(&self) -> (&Vec<Vec<usize>>, &Vec<String>) {
-        (&self.nodes, &self.nodenames)
+    pub fn tree(&self) -> (&Vec<Vec<usize>>, &Vec<String>) {
+        (&self.edges, &self.nodes)
     }
 
     /// retrieve the id number corresponding to a name
     pub fn get_id(&self, name: &str) -> Option<usize> {
-        self.namelookup.get(name).copied()
+        self.lookup.get(name).copied()
     }
 }
 
