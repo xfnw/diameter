@@ -141,14 +141,6 @@ impl SpanningTree {
         self.nodes[to].push(from);
     }
 
-    /// retrieve internal representation of the tree, and list of names
-    ///
-    /// useful for feeding into [`get_farthest`], although in most cases it is easier to use
-    /// [`SpanningTree::diameter`]
-    pub fn nodes(&self) -> (&Vec<Vec<usize>>, &Vec<String>) {
-        (&self.nodes, &self.nodenames)
-    }
-
     /// calculate the diameter and two of the farthest nodes
     ///
     /// ```rust
@@ -174,6 +166,19 @@ impl SpanningTree {
         let (node_b, length) = get_farthest(node_a, &self.nodes);
 
         Some((length, &self.nodenames[node_a], &self.nodenames[node_b]))
+    }
+
+    /// retrieve internal representation of the tree, and list of names
+    ///
+    /// useful for feeding into [`get_farthest`], although in most cases it is easier to use
+    /// [`SpanningTree::diameter`]
+    pub fn nodes(&self) -> (&Vec<Vec<usize>>, &Vec<String>) {
+        (&self.nodes, &self.nodenames)
+    }
+
+    /// retrieve the id number corresponding to a name
+    pub fn get_id(&self, name: &str) -> Option<usize> {
+        self.namelookup.get(name).copied()
     }
 }
 
