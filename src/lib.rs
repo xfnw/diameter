@@ -126,19 +126,20 @@ impl SpanningTree {
     ///
     /// ```rust
     /// let mut graph = diameter::SpanningTree::default();
-    /// graph.add_link("some.server", "other.server");
+    /// let ids = graph.add_link("some.server", "other.server");
     ///
+    /// assert_eq!(ids, (0, 1));
     /// println!("{:?}", graph);
     /// ```
-    pub fn add_link(&mut self, from: &str, to: &str) {
+    pub fn add_link(&mut self, from: &str, to: &str) -> (usize, usize) {
         let (from, to) = make_ids!((from, to), self.lookup, self.nodes, self.edges);
 
-        if from == to {
-            return;
+        if from != to {
+            self.edges[from].push(to);
+            self.edges[to].push(from);
         }
 
-        self.edges[from].push(to);
-        self.edges[to].push(from);
+        (from, to)
     }
 
     /// calculate the diameter and two of the farthest nodes
